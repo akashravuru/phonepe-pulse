@@ -2,6 +2,14 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import sqlite3
+import os
+from data_extraction import setup_database
+
+# Setup database if it doesn't exist
+conn = sqlite3.connect("phonepe_pulse.db")
+
+if not os.path.exists("phonepe_data"):
+    setup_database(conn)
 
 # Custom CSS
 st.markdown("""

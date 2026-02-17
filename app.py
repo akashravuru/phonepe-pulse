@@ -3,6 +3,30 @@ import pandas as pd
 import plotly.express as px
 import sqlite3
 
+# Custom CSS
+st.markdown("""
+    <style>
+    .main {
+        padding: 0rem 1rem;
+    }
+    .stMetric {
+        background-color: #F5F0FF;
+        padding: 15px;
+        border-radius: 10px;
+        border-left: 4px solid #5F259F;
+    }
+    h1 {
+        color: #5F259F;
+        font-size: 2.5rem;
+    }
+    h2 {
+        color: #1C1C2E;
+        border-bottom: 2px solid #5F259F;
+        padding-bottom: 5px;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # Connect to database
 conn = sqlite3.connect("phonepe_pulse.db")
 

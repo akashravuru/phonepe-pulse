@@ -4,7 +4,18 @@ from services.copilot import (
     ask_financial_copilot
 )
 
-st.title("Financial Intelligence Copilot")
+st.title("AI Financial Intelligence Copilot")
+
+st.markdown("""
+Ask questions about:
+
+- PhonePe transaction data
+- State growth trends
+- Transaction categories
+- RBI reports
+- UPI ecosystem
+- Digital payment regulations
+""")
 
 year = st.selectbox(
     "Select Year",
@@ -17,14 +28,16 @@ quarter = st.selectbox(
 )
 
 question = st.text_area(
-    "Ask a question about the PhonePe data"
+    "Ask anything about PhonePe analytics or RBI knowledge"
 )
 
 if st.button("Ask Copilot"):
 
     if question:
 
-        with st.spinner("Analyzing data..."):
+        with st.spinner(
+            "Thinking..."
+        ):
 
             response = ask_financial_copilot(
                 question,

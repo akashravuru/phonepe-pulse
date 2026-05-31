@@ -1,27 +1,60 @@
 from services.llm import ask_llm
 
-from services.analytics import (
-    get_transaction_summary,
-    get_user_summary,
-    get_top_state,
-    get_transaction_by_type,
-    get_top_districts,
-    get_state_growth
-)
+from services.retriever import retrieve_context
+
+from services.prompts import build_prompt
+
+from services.rag import rag_answer
 
 
 def detect_intent(question):
 
     question = question.lower()
 
-    if "growth" in question:
-        return "growth"
+    rag_keywords = [
+        "rbi",
+        "digital payments",
+        "regulation",
+        "policy",
+        "payment system",
+        "bbps",
+        "e-rupi",
+        "upi"
+    ]
 
-    elif "state" in question:
+    for keyword in rag_keywords:
+
+        if keyword in question:
+            return "rag"
+
+    growth_keywords = [
+        "growth",
+        "growing",
+        "fastest growing",
+        "increase",
+        "increasing",
+        "growth rate"
+    ]
+
+    for keyword in growth_keywords:
+
+        if keyword in question:
+            return "growth"
+
+    category_keywords = [
+        "category",
+        "categories",
+        "transaction type",
+        "transaction types"
+    ]
+
+    for keyword in category_keywords:
+
+        if keyword in question:
+            return "category"
+
+    if "state" in question:
         return "state"
-
-    elif "category" in question:
-        return "category"
 
     elif "district" in question:
         return "district"
@@ -29,106 +62,27 @@ def detect_intent(question):
     else:
         return "general"
 
-
 def ask_financial_copilot(question, year, quarter):
 
     intent = detect_intent(question)
 
-    context = ""
+    print("INTENT:", intent)
 
-    if intent == "growth":
+    if intent == "rag":
 
-        state_growth = get_state_growth(
-            year,
-            quarter
-        )
+        return rag_answer(question)
 
-        context = f"""
-        State Growth Data:
+    context = retrieve_context(
+        intent,
+        year,
+        quarter
+    )
 
-        {state_growth.to_string(index=False)}
-        """
-
-    elif intent == "state":
-
-        top_states = get_top_state(
-            year,
-            quarter
-        )
-
-        context = f"""
-        Top States:
-
-        {top_states.to_string(index=False)}
-        """
-
-    elif intent == "category":
-
-        transaction_types = get_transaction_by_type(
-            year,
-            quarter
-        )
-
-        context = f"""
-        Transaction Categories:
-
-        {transaction_types.to_string(index=False)}
-        """
-
-    elif intent == "district":
-
-        top_districts = get_top_districts(
-            year,
-            quarter
-        )
-
-        context = f"""
-        Top Districts:
-
-        {top_districts.to_string(index=False)}
-        """
-
-    else:
-
-        tx = get_transaction_summary(
-            year,
-            quarter
-        )
-
-        users = get_user_summary(
-            year,
-            quarter
-        )
-
-        context = f"""
-        Transaction Summary:
-
-        {tx.to_string(index=False)}
-
-        User Summary:
-
-        {users.to_string(index=False)}
-        """
-
-    prompt = f"""
-    You are a senior financial analyst.
-
-    Year: {year}
-    Quarter: {quarter}
-
-    Context:
-
-    {context}
-
-    User Question:
-
-    {question}
-
-    Rules:
-    - Answer only using the provided context.
-    - If data is insufficient, say so.
-    - Do not invent facts.
-    - Be concise and analytical.
-    """
+    prompt = build_prompt(
+        question,
+        context,
+        year,
+        quarter
+    )
 
     return ask_llm(prompt)

@@ -4,3 +4,9 @@ streamlit==1.44.0
 mysql-connector-python==9.6.0
 gitpython==3.1.46
 altair==5.5.0
+
+google-generativeai
+sentence-transformers
+chromadb
+pypdf
+torch

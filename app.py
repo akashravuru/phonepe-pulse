@@ -22,11 +22,6 @@ from services.analytics import (
     get_user_engagement
 )
 
-# Setup database if it doesn't exist
-conn = sqlite3.connect("phonepe_pulse.db")
-
-if not os.path.exists("phonepe_data"):
-    setup_database(conn)
 
 # Custom CSS
 st.markdown("""

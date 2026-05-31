@@ -3,15 +3,14 @@ import pandas as pd
 import plotly.express as px
 import sqlite3
 import os
-from data_extraction import setup_database
-
-import streamlit as st
 
 st.set_page_config(
     page_title="AI Financial Intelligence Platform",
     page_icon="📊",
     layout="wide"
 )
+
+
 from services.analytics import (
     get_transaction_summary,
     get_user_summary,
@@ -97,8 +96,23 @@ state_name_mapping = {
 }
 
 # App title
-st.title("PhonePe Pulse Dashboard")
-st.markdown("Explore PhonePe transaction data across India")
+st.title("AI Financial Intelligence Platform")
+
+st.markdown("""
+### Analytics • AI Insights • Financial Copilot • RBI Knowledge Base
+
+An AI-powered financial intelligence platform built using:
+
+- PhonePe Pulse transaction data
+- SQL analytics
+- Streamlit dashboards
+- Gemini AI
+- Retrieval-Augmented Generation (RAG)
+- ChromaDB vector search
+- RBI Annual Reports
+
+Use the sidebar to explore analytics and AI-powered insights.
+""")
 
 
 

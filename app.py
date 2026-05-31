@@ -4,6 +4,14 @@ import plotly.express as px
 import sqlite3
 import os
 from data_extraction import setup_database
+
+import streamlit as st
+
+st.set_page_config(
+    page_title="AI Financial Intelligence Platform",
+    page_icon="📊",
+    layout="wide"
+)
 from services.analytics import (
     get_transaction_summary,
     get_user_summary,

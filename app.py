@@ -4,6 +4,16 @@ import plotly.express as px
 import sqlite3
 import os
 from data_extraction import setup_database
+from services.analytics import (
+    get_transaction_summary,
+    get_user_summary,
+    get_transaction_by_type,
+    get_state_analysis,
+    get_top_users,
+    get_transaction_trend,
+    get_top_districts,
+    get_user_engagement
+)
 
 # Setup database if it doesn't exist
 conn = sqlite3.connect("phonepe_pulse.db")
@@ -101,19 +111,15 @@ quarter = st.sidebar.selectbox(
 # Summary metrics
 col1, col2, col3 = st.columns(3)
 
-df_summary = pd.read_sql(f"""
-    SELECT 
-        SUM(transaction_count) as total_count,
-        SUM(transaction_amount) as total_amount
-    FROM aggregated_transaction
-    WHERE year = {year} AND quarter = {quarter}
-""", conn)
+df_summary = get_transaction_summary(
+    year,
+    quarter
+)
 
-df_users_summary = pd.read_sql(f"""
-    SELECT SUM(registered_users) as total_users
-    FROM aggregated_user
-    WHERE year = {year} AND quarter = {quarter}
-""", conn)
+df_users_summary = get_user_summary(
+    year,
+    quarter
+)
 
 with col1:
     st.metric("Total Transactions", f"{int(df_summary['total_count'][0]):,}")
@@ -128,14 +134,10 @@ with col3:
 st.header("Transaction Analysis")
 
 # Fetch data based on filters
-df = pd.read_sql(f"""
-    SELECT transaction_type, 
-           SUM(transaction_count) as total_count,
-           SUM(transaction_amount) as total_amount
-    FROM aggregated_transaction
-    WHERE year = {year} AND quarter = {quarter}
-    GROUP BY transaction_type
-""", conn)
+df = get_transaction_by_type(
+    year,
+    quarter
+)
 
 # Bar chart
 fig = px.bar(
@@ -164,15 +166,10 @@ st.plotly_chart(fig2)
 # Section 2: State-wise Analysis
 st.header("State-wise Analysis")
 
-df_states = pd.read_sql(f"""
-    SELECT state,
-           SUM(transaction_count) as total_count,
-           SUM(transaction_amount) as total_amount
-    FROM aggregated_transaction
-    WHERE year = {year} AND quarter = {quarter}
-    GROUP BY state
-    ORDER BY total_amount DESC
-""", conn)
+df_states = get_state_analysis(
+    year,
+    quarter
+)
 
 fig3 = px.bar(
     df_states,
@@ -209,16 +206,10 @@ st.plotly_chart(fig4)
 # Section 4: User Analysis
 st.header("User Analysis")
 
-df_users = pd.read_sql(f"""
-    SELECT state,
-           SUM(registered_users) as total_users,
-           SUM(app_opens) as total_app_opens
-    FROM aggregated_user
-    WHERE year = {year} AND quarter = {quarter}
-    GROUP BY state
-    ORDER BY total_users DESC
-    LIMIT 10
-""", conn)
+df_users = get_top_users(
+    year,
+    quarter
+)
 
 fig5 = px.bar(
     df_users,
@@ -241,25 +232,9 @@ transaction_type = st.selectbox(
              "Recharge & bill payments", "Financial Services", "Others"]
 )
 
-if transaction_type == "All":
-    df_trend = pd.read_sql(f"""
-        SELECT year, quarter,
-               SUM(transaction_count) as total_count,
-               SUM(transaction_amount) as total_amount
-        FROM aggregated_transaction
-        GROUP BY year, quarter
-        ORDER BY year, quarter
-    """, conn)
-else:
-    df_trend = pd.read_sql(f"""
-        SELECT year, quarter,
-               SUM(transaction_count) as total_count,
-               SUM(transaction_amount) as total_amount
-        FROM aggregated_transaction
-        WHERE transaction_type = '{transaction_type}'
-        GROUP BY year, quarter
-        ORDER BY year, quarter
-    """, conn)
+df_trend = get_transaction_trend(
+    transaction_type
+)
 
 df_trend["period"] = df_trend["year"].astype(str) + " Q" + df_trend["quarter"].astype(str)
 
@@ -278,17 +253,10 @@ st.plotly_chart(fig6)
 # Section 6: Top Districts
 st.header("Top Districts")
 
-df_districts = pd.read_sql(f"""
-    SELECT entity_name, 
-           SUM(transaction_count) as total_count,
-           SUM(transaction_amount) as total_amount
-    FROM top_transaction
-    WHERE year = {year} AND quarter = {quarter}
-    AND entity_type = 'district'
-    GROUP BY entity_name
-    ORDER BY total_amount DESC
-    LIMIT 10
-""", conn)
+df_districts = get_top_districts(
+    year,
+    quarter
+)
 
 fig7 = px.bar(
     df_districts,
@@ -306,16 +274,10 @@ st.plotly_chart(fig7)
 # Section 7: App Opens vs Registered Users
 st.header("App Opens vs Registered Users")
 
-df_engagement = pd.read_sql(f"""
-    SELECT state,
-           SUM(registered_users) as total_users,
-           SUM(app_opens) as total_app_opens
-    FROM aggregated_user
-    WHERE year = {year} AND quarter = {quarter}
-    GROUP BY state
-    ORDER BY total_users DESC
-    LIMIT 15
-""", conn)
+df_engagement = get_user_engagement(
+    year,
+    quarter
+)
 
 fig8 = px.scatter(
     df_engagement,
